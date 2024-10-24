@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="game.js" defer></script>
+</head>
+<body>
+    <canvas id="board"></canvas>
+
+    <div id="main-menu">
+        <img id="logo-image" src="./assets/images/logo.png" alt="Flappy Bird" />
+        <img id="start-button" src="./assets/images/start.png" alt="Start Game" style="cursor: pointer;" />
+    </div>
+
+    <div id="gameover-menu" style="display: none;">
+        <img id="gameover-image" src="./assets/images/gameover.png" alt="Game Over" />
+        <p>Your Score: <span id="final-score">0</span></p>
+        <img id="restart-button" src="./assets/images/restart.png" alt="Restart Game" style="cursor: pointer;" />
+    </div>
+
+    <img id="message-image" src="./assets/images/message.png" alt="Message" style="display: none;" />
+
+    <footer>
+        <p>Game made by Nolan</p>
+    </footer>
+</body>
+</html>
