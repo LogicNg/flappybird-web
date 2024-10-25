@@ -55,7 +55,7 @@ Flappy Bird Clone is a web version of the iconic Flappy Bird game released many 
 
 ## Demo
 
-https://github.com/nolanjp/flappybird-web
+https://nolanjp.github.io/flappybird-web/
 
 
 ## Installation
