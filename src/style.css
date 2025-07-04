@@ -209,7 +209,14 @@ body {
 /* Hide webcam when there's not enough space */
 @media (max-width: 640px) {
   #webcam {
-    display: none !important;
+    visibility: hidden !important;
+    /* position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important; */
   }
 }
 

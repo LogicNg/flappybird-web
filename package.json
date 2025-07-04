@@ -1,0 +1,33 @@
+{
+  "name": "flappybird-web",
+  "version": "1.0.0",
+  "description": "A web-based Flappy Bird game with head tracking",
+  "main": "index.html",
+  "scripts": {
+    "dev": "live-server --port=3000 --host=0.0.0.0",
+    "build": "node build.js",
+    "start": "node server.js",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "game",
+    "flappy-bird",
+    "web",
+    "html5",
+    "canvas"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "html-minifier-terser": "^7.2.0",
+    "terser": "^5.24.0",
+    "clean-css": "^5.3.2",
+    "rimraf": "^5.0.5",
+    "fs-extra": "^11.2.0",
+    "javascript-obfuscator": "^4.0.2"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "live-server": "^1.2.2"
+  }
+}
