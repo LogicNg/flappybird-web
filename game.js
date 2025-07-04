@@ -89,23 +89,8 @@ window.onload = function () {
 
 // Handle mobile orientation changes and responsive updates
 function handleResize() {
-  // Debounce resize events
-  clearTimeout(window.resizeTimer);
-  window.resizeTimer = setTimeout(() => {
-    // Update camera resolution if needed
-    if (isWebcamEnabled && webcam.srcObject) {
-      const isMobile = window.innerWidth <= 768;
-      const newWidth = isMobile ? 160 : 320;
-      const newHeight = isMobile ? 120 : 240;
-
-      // Only update if size actually changed
-      if (webcam.width !== newWidth || webcam.height !== newHeight) {
-        webcam.width = newWidth;
-        webcam.height = newHeight;
-        console.log(`Camera resolution updated to ${newWidth}x${newHeight}`);
-      }
-    }
-  }, 250);
+  // No longer need to update camera resolution on resize
+  // Camera uses fixed dimensions for consistent performance
 }
 
 function loadGame() {
@@ -330,23 +315,19 @@ async function initializeCamera() {
   try {
     updateCameraStatus("🔄 Requesting camera access...");
 
-    // Determine camera resolution based on screen size
-    const isMobile = window.innerWidth <= 768;
-    const cameraWidth = isMobile ? 160 : 320;
-    const cameraHeight = isMobile ? 120 : 240;
-
+    // Use fixed small resolution for all devices - face detection works fine at low resolution
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: cameraWidth,
-        height: cameraHeight,
+        width: 160,
+        height: 120,
         facingMode: "user",
       },
     });
     webcam.srcObject = stream;
 
-    // Update webcam element dimensions
-    webcam.width = cameraWidth;
-    webcam.height = cameraHeight;
+    // Set webcam element dimensions
+    webcam.width = 160;
+    webcam.height = 120;
 
     webcam.style.display = "block";
     isWebcamEnabled = true;
@@ -354,9 +335,7 @@ async function initializeCamera() {
     isCameraReady = true;
 
     updateCameraStatus("✅ Camera ready!");
-    console.log(
-      `Camera initialized successfully at ${cameraWidth}x${cameraHeight}`
-    );
+    console.log("Camera initialized successfully at 160x120");
 
     // Start face detection immediately
     detectHeadPosition();

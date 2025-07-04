@@ -14,35 +14,79 @@ body {
 
 #webcam {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  border: 2px solid #333;
-  border-radius: 8px;
+  top: 2vh;
+  right: 2vw;
   z-index: 999;
-  width: 120px;
-  height: 90px;
+  /* Dynamic sizing based on viewport */
+  width: 15vw;
+  height: 15vw;
+  min-width: 80px;
+  min-height: 80px;
+  max-width: 150px;
+  max-height: 150px;
   object-fit: cover;
+  /* Circular frame */
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  background: #000;
+}
+
+/* Tablet-specific webcam styling */
+@media (max-width: 1024px) and (min-width: 769px) {
+  #webcam {
+    width: 12vw;
+    height: 12vw;
+    top: 3vh;
+    right: 3vw;
+  }
 }
 
 /* Mobile-specific webcam styling */
 @media (max-width: 768px) {
   #webcam {
-    width: 80px;
-    height: 60px;
-    top: 5px;
-    right: 5px;
-    border: 1px solid #333;
-    border-radius: 5px;
+    width: 20vw;
+    height: 20vw;
+    min-width: 70px;
+    min-height: 70px;
+    max-width: 120px;
+    max-height: 120px;
+    top: 2vh;
+    right: 3vw;
+    border: 2px solid #fff;
   }
 }
 
 /* Small mobile devices */
 @media (max-width: 480px) {
   #webcam {
-    width: 60px;
-    height: 45px;
-    top: 5px;
-    right: 5px;
+    width: 18vw;
+    height: 18vw;
+    min-width: 60px;
+    min-height: 60px;
+    max-width: 90px;
+    max-height: 90px;
+    top: 1.5vh;
+    right: 2vw;
+    border: 2px solid #fff;
+  }
+}
+
+/* Portrait orientation adjustments */
+@media (orientation: portrait) {
+  #webcam {
+    width: 18vw;
+    height: 18vw;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (orientation: landscape) {
+  #webcam {
+    width: 12vh;
+    height: 12vh;
+    top: 2vh;
+    right: 2vw;
   }
 }
 
