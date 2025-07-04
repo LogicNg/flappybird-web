@@ -1,3 +1,4 @@
+/* Base Styles */
 body {
   background: linear-gradient(to bottom right, #f0f0f0, #cccccc);
   color: black;
@@ -12,111 +13,7 @@ body {
   overflow: hidden;
 }
 
-#webcam {
-  position: absolute;
-  top: 2vh;
-  right: 2vw;
-  z-index: 999;
-  /* Dynamic sizing based on viewport - using vmin for responsive scaling */
-  width: 28vmin;
-  height: auto; /* Maintain aspect ratio */
-  min-width: 160px;
-  min-height: 120px;
-  max-width: 400px;
-  max-height: 300px;
-  object-fit: cover;
-  /* Rectangular frame with rounded corners */
-  border-radius: 10px;
-  border: 3px solid #fff;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  background: #000;
-}
-
-/* Tablet-specific webcam styling */
-@media (max-width: 1024px) and (min-width: 769px) {
-  #webcam {
-    width: 25vmin;
-    height: auto;
-    top: 3vh;
-    right: 3vw;
-    min-width: 180px;
-    max-width: 350px;
-  }
-}
-
-/* Mobile-specific webcam styling */
-@media (max-width: 768px) {
-  #webcam {
-    width: 32vmin;
-    height: auto;
-    min-width: 140px;
-    min-height: 105px;
-    max-width: 280px;
-    max-height: 210px;
-    top: 2vh;
-    right: 3vw;
-    border: 2px solid #fff;
-    border-radius: 8px;
-  }
-}
-
-/* Small mobile devices */
-@media (max-width: 480px) {
-  #webcam {
-    width: 30vmin;
-    height: auto;
-    min-width: 120px;
-    min-height: 90px;
-    max-width: 360;
-    max-height: 270;
-    top: 1.5vh;
-    right: 2vw;
-    border: 2px solid #fff;
-    border-radius: 6px;
-  }
-}
-
-/* Hide camera when there's insufficient horizontal space */
-/* Calculate available space: if viewport width minus scaled game board width is less than 300px, hide camera */
-@media (max-width: 660px) {
-  /* 360px board + 300px minimum space = 660px threshold */
-  #webcam {
-    display: none !important;
-  }
-}
-
-/* For scaled boards on mobile, use a more complex calculation */
-@media (max-width: 768px) {
-  /* When board is scaled, calculate based on actual rendered size */
-  /* If 100vw - (360px * scale) < 280px, hide camera */
-  /* This roughly translates to viewports narrower than 640px when scaled */
-  @media (max-width: 640px) {
-    #webcam {
-      display: none !important;
-    }
-  }
-}
-
-/* Show camera in landscape with sufficient space */
-@media (orientation: landscape) and (min-width: 661px) {
-  #webcam {
-    width: 25vmin;
-    height: auto;
-    top: 2vh;
-    right: 2vw;
-    max-width: 280px;
-  }
-}
-
-/* Portrait mode with sufficient width (tablets in portrait) */
-@media (orientation: portrait) and (min-width: 661px) {
-  #webcam {
-    width: 30vmin;
-    height: auto;
-    max-width: 300px;
-  }
-}
-
+/* Game Board */
 #board {
   border: 5px solid #000;
   margin: auto;
@@ -130,29 +27,24 @@ body {
   height: 640px;
 }
 
-/* Mobile responsive board - fit to screen while maintaining aspect ratio */
-@media (max-width: 768px) {
-  #board {
-    border: 3px solid #000;
-    /* Calculate scale to fit screen while maintaining aspect ratio */
-    max-width: 100vw;
-    max-height: 100vh;
-    width: 360px;
-    height: 640px;
-    /* Use CSS transform to scale down if needed */
-    transform: translate(-50%, -50%)
-      scale(min(calc(100vw / 360px), calc(100vh / 640px)));
-    transform-origin: center;
-  }
+/* Webcam */
+#webcam {
+  position: absolute;
+  top: 2vh;
+  right: 2vw;
+  z-index: 999;
+  width: 280px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 10px;
+  /* border: 3px solid #fff; */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  background: #000;
 }
 
-@media (max-width: 480px) {
-  #board {
-    border: 2px solid #000;
-  }
-}
-
-#main-menu {
+/* Menus */
+#main-menu,
+#gameover-menu {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -167,23 +59,40 @@ body {
   z-index: 1000;
 }
 
-/* Mobile responsive main menu - scale with board */
-@media (max-width: 768px) {
-  #main-menu {
-    /* Match the board's scaling */
-    transform: translate(-50%, -50%)
-      scale(min(calc(100vw / 360px), calc(100vh / 640px)));
-    transform-origin: center;
-  }
+#gameover-menu {
+  display: none;
 }
 
-#main-menu #logo-image {
-  width: 80%;
+/* Menu Images */
+#logo-image {
+  width: 280px;
   margin-bottom: 50px;
   cursor: pointer;
-  max-width: 280px;
 }
 
+#start-button,
+#restart-button {
+  width: 150px;
+  cursor: pointer;
+}
+
+#gameover-image {
+  width: 200px;
+  margin-bottom: 10px;
+}
+
+#message-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  pointer-events: none;
+  display: none;
+  z-index: 500;
+}
+
+/* Text Styles */
 #camera-instructions {
   color: white;
   font-size: 16px;
@@ -198,6 +107,14 @@ body {
   margin: 5px 0;
 }
 
+#gameover-menu p {
+  font-size: 36px;
+  color: white;
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Loading Screen */
 #loading-screen {
   background: rgba(0, 0, 0, 0.8);
   color: white;
@@ -253,70 +170,50 @@ body {
   background: rgba(244, 67, 54, 0.3) !important;
 }
 
-#main-menu #start-button {
-  width: 40%;
-  cursor: pointer;
-  max-width: 150px;
-}
-
-#gameover-menu {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 360px;
-  height: 640px;
-  background: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  display: none;
-  z-index: 1000;
-}
-
-/* Mobile responsive gameover menu - scale with board */
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
+  /* Scale game board and menus to fit screen */
+  #board,
+  #main-menu,
   #gameover-menu {
-    /* Match the board's scaling */
     transform: translate(-50%, -50%)
-      scale(min(calc(100vw / 360px), calc(100vh / 640px)));
+      scale(min(calc(100vw / 380px), calc(100vh / 660px)));
     transform-origin: center;
+  }
+
+  #board {
+    border: 3px solid #000;
+  }
+
+  /* Smaller webcam on mobile */
+  #webcam {
+    width: 180px;
+    height: 135px;
+    /* border: 2px solid #fff; */
+    border-radius: 8px;
   }
 }
 
-#gameover-image {
-  width: 50%;
-  margin-bottom: 10px;
-  max-width: 200px;
+@media (max-width: 480px) {
+  #board {
+    border: 2px solid #000;
+  }
+
+  #webcam {
+    width: 140px;
+    height: 105px;
+    border-radius: 6px;
+  }
 }
 
-#gameover-menu p {
-  font-size: 36px;
-  color: white;
-  margin-bottom: 40px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+/* Hide webcam when there's not enough space */
+@media (max-width: 640px) {
+  #webcam {
+    display: none !important;
+  }
 }
 
-#gameover-menu #restart-button {
-  width: 40%;
-  cursor: pointer;
-  max-width: 150px;
-}
-
-#message-image {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%;
-  max-width: 200px;
-  pointer-events: none;
-  display: none; /* Hidden by default */
-  z-index: 500;
-}
-
-/* Add touch-friendly styling for mobile */
+/* Touch feedback for mobile */
 @media (max-width: 768px) {
   img[style*="cursor: pointer"],
   #start-button,
