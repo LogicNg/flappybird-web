@@ -16,15 +16,22 @@ let topPipeImg, bottomPipeImg;
 
 // Pipe configuration constants
 const pipeGap = boardHeight / 4; // Gap between top and bottom pipes
-const pipeSpawnInterval = 2000; // Time between pipe spawns in milliseconds
+const basePipeSpawnInterval = 2000; // Base time between pipe spawns in milliseconds
 const minGapFromEdges = 80; // Minimum distance from screen edges for gap center
+
+// Speed progression constants
+const baseVelocityX = -2; // Base horizontal speed
+const maxVelocityX = -5; // Maximum horizontal speed
+const minPipeSpawnInterval = 800; // Minimum time between pipe spawns
+const speedIncreaseInterval = 5; // Score interval for speed increases
 
 let gravity = 0.4,
   velocityY = 0,
-  velocityX = -2,
+  velocityX = baseVelocityX,
   isGameStarted = false,
   gameOver = false,
-  score = 0;
+  score = 0,
+  currentPipeSpawnInterval = basePipeSpawnInterval;
 
 let flapSound = new Audio("./assets/sound/flap.mp3");
 let passPipeSound = new Audio("./assets/sound/pass_pipe.mp3");
@@ -33,6 +40,7 @@ let swooshSound = new Audio("./assets/sound/swoosh.mp3");
 
 let pipeInterval, animationId;
 let messageImg;
+let lastPipeSpawnTime = 0;
 
 // Head tracking variables
 let webcam, faceModel;
@@ -71,9 +79,34 @@ window.onload = function () {
     .getElementById("restart-button")
     .addEventListener("click", restartGame);
 
+  // Handle window resize for mobile orientation changes
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("orientationchange", handleResize);
+
   // Start initialization sequence
   initializeGame();
 };
+
+// Handle mobile orientation changes and responsive updates
+function handleResize() {
+  // Debounce resize events
+  clearTimeout(window.resizeTimer);
+  window.resizeTimer = setTimeout(() => {
+    // Update camera resolution if needed
+    if (isWebcamEnabled && webcam.srcObject) {
+      const isMobile = window.innerWidth <= 768;
+      const newWidth = isMobile ? 160 : 320;
+      const newHeight = isMobile ? 120 : 240;
+
+      // Only update if size actually changed
+      if (webcam.width !== newWidth || webcam.height !== newHeight) {
+        webcam.width = newWidth;
+        webcam.height = newHeight;
+        console.log(`Camera resolution updated to ${newWidth}x${newHeight}`);
+      }
+    }
+  }, 250);
+}
 
 function loadGame() {
   // Check if everything is properly initialized
@@ -114,8 +147,11 @@ function startGame() {
     baseHeadY = currentHeadY;
     smoothedHeadY = currentHeadY;
 
-    // Use the pipe spawn interval constant
-    pipeInterval = setInterval(addPipes, pipeSpawnInterval);
+    // Reset speed settings
+    velocityX = baseVelocityX;
+    currentPipeSpawnInterval = basePipeSpawnInterval;
+    lastPipeSpawnTime = Date.now();
+
     messageImg.style.display = "none"; // Hide the message after the game starts
   }
 }
@@ -125,10 +161,17 @@ function update() {
   ctx.clearRect(0, 0, board.width, board.height);
 
   if (isGameStarted) {
+    // Handle time-based pipe spawning with variable intervals
+    const currentTime = Date.now();
+    if (currentTime - lastPipeSpawnTime >= currentPipeSpawnInterval) {
+      addPipes();
+      lastPipeSpawnTime = currentTime;
+    }
+
     // Handle head tracking control - camera control is required
     if (headTrackingEnabled && currentHeadY !== null) {
-      // Map head position directly to bird Y coordinate using full video height
-      const videoHeight = 240; // Height of the webcam video
+      // Map head position directly to bird Y coordinate using current video height
+      const videoHeight = webcam.height; // Use actual webcam height (responsive)
       const headProgress = currentHeadY / videoHeight;
 
       // Map to game board height, keeping bird within bounds
@@ -160,6 +203,7 @@ function update() {
       score += 0.5;
       pipe.passed = true;
       passPipeSound.play();
+      updateGameSpeed(); // Update game speed when score increases
     }
 
     if (isCollision(bird, pipe)) endGame();
@@ -234,7 +278,7 @@ function isCollision(bird, pipe) {
 
 function endGame() {
   gameOver = true;
-  clearInterval(pipeInterval);
+  // Note: No need to clear interval since we're using time-based spawning
   deathSound.play();
   document.getElementById("gameover-menu").style.display = "flex";
   document.getElementById("final-score").textContent = Math.floor(score);
@@ -246,6 +290,11 @@ function restartGame() {
   velocityY = 0;
   score = 0;
   bird.y = birdY;
+
+  // Reset speed settings
+  velocityX = baseVelocityX;
+  currentPipeSpawnInterval = basePipeSpawnInterval;
+
   document.getElementById("gameover-menu").style.display = "none";
 
   // Reset head tracking baseline
@@ -281,21 +330,33 @@ async function initializeCamera() {
   try {
     updateCameraStatus("🔄 Requesting camera access...");
 
+    // Determine camera resolution based on screen size
+    const isMobile = window.innerWidth <= 768;
+    const cameraWidth = isMobile ? 160 : 320;
+    const cameraHeight = isMobile ? 120 : 240;
+
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        width: 320,
-        height: 240,
+        width: cameraWidth,
+        height: cameraHeight,
         facingMode: "user",
       },
     });
     webcam.srcObject = stream;
+
+    // Update webcam element dimensions
+    webcam.width = cameraWidth;
+    webcam.height = cameraHeight;
+
     webcam.style.display = "block";
     isWebcamEnabled = true;
     headTrackingEnabled = true;
     isCameraReady = true;
 
     updateCameraStatus("✅ Camera ready!");
-    console.log("Camera initialized successfully");
+    console.log(
+      `Camera initialized successfully at ${cameraWidth}x${cameraHeight}`
+    );
 
     // Start face detection immediately
     detectHeadPosition();
@@ -427,7 +488,8 @@ async function detectHeadPosition() {
 
       // Auto-start game when head movement is detected and game is loaded but not started
       if (!isGameStarted && !gameOver && headTrackingEnabled) {
-        const videoHeight = 240;
+        // Get current video height (responsive)
+        const videoHeight = webcam.height;
         const headProgress = smoothedHeadY / videoHeight;
 
         console.log(
@@ -442,7 +504,7 @@ async function detectHeadPosition() {
       }
 
       // Update UI based on position in video (for debugging)
-      const videoHeight = 240;
+      const videoHeight = webcam.height;
       const headProgress = smoothedHeadY / videoHeight;
 
       let positionText = "Center";
@@ -464,5 +526,27 @@ async function detectHeadPosition() {
 
   if (headTrackingEnabled) {
     requestAnimationFrame(detectHeadPosition);
+  }
+}
+
+function updateGameSpeed() {
+  // Calculate speed multiplier based on score
+  const speedLevel = Math.floor(score / speedIncreaseInterval);
+  const speedMultiplier = 1 + speedLevel * 0.15; // Increase by 15% per level
+
+  // Update horizontal velocity (capped at maximum)
+  velocityX = Math.max(maxVelocityX, baseVelocityX * speedMultiplier);
+
+  // Update pipe spawn interval (capped at minimum)
+  const newSpawnInterval = basePipeSpawnInterval / speedMultiplier;
+  currentPipeSpawnInterval = Math.max(minPipeSpawnInterval, newSpawnInterval);
+
+  // Debug logging (can be removed in production)
+  if (speedLevel > 0 && score % speedIncreaseInterval === 0) {
+    console.log(
+      `Speed Level ${speedLevel}: velocityX=${velocityX.toFixed(
+        2
+      )}, spawnInterval=${currentPipeSpawnInterval}ms`
+    );
   }
 }

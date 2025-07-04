@@ -9,47 +9,108 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
 #webcam {
   position: absolute;
   top: 10px;
-  left: 10px;
+  right: 10px;
   border: 2px solid #333;
-  border-radius: 5px;
+  border-radius: 8px;
   z-index: 999;
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+}
+
+/* Mobile-specific webcam styling */
+@media (max-width: 768px) {
+  #webcam {
+    width: 80px;
+    height: 60px;
+    top: 5px;
+    right: 5px;
+    border: 1px solid #333;
+    border-radius: 5px;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  #webcam {
+    width: 60px;
+    height: 45px;
+    top: 5px;
+    right: 5px;
+  }
 }
 
 #board {
   border: 5px solid #000;
   margin: auto;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-image: url("./assets/images/bg.png");
   background-size: cover;
+  width: 360px;
+  height: 640px;
+}
+
+/* Mobile responsive board - fit to screen while maintaining aspect ratio */
+@media (max-width: 768px) {
+  #board {
+    border: 3px solid #000;
+    /* Calculate scale to fit screen while maintaining aspect ratio */
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 360px;
+    height: 640px;
+    /* Use CSS transform to scale down if needed */
+    transform: translate(-50%, -50%)
+      scale(min(calc(100vw / 360px), calc(100vh / 640px)));
+    transform-origin: center;
+  }
+}
+
+@media (max-width: 480px) {
+  #board {
+    border: 2px solid #000;
+  }
 }
 
 #main-menu {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: 360px;
-  height: 800px;
+  height: 640px;
   background: none;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  z-index: 1000;
+}
+
+/* Mobile responsive main menu - scale with board */
+@media (max-width: 768px) {
+  #main-menu {
+    /* Match the board's scaling */
+    transform: translate(-50%, -50%)
+      scale(min(calc(100vw / 360px), calc(100vh / 640px)));
+    transform-origin: center;
+  }
 }
 
 #main-menu #logo-image {
   width: 80%;
   margin-bottom: 50px;
   cursor: pointer;
+  max-width: 280px;
 }
 
 #camera-instructions {
@@ -124,13 +185,14 @@ body {
 #main-menu #start-button {
   width: 40%;
   cursor: pointer;
+  max-width: 150px;
 }
 
 #gameover-menu {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: 360px;
   height: 640px;
   background: none;
@@ -139,22 +201,36 @@ body {
   align-items: center;
   flex-direction: column;
   display: none;
+  z-index: 1000;
+}
+
+/* Mobile responsive gameover menu - scale with board */
+@media (max-width: 768px) {
+  #gameover-menu {
+    /* Match the board's scaling */
+    transform: translate(-50%, -50%)
+      scale(min(calc(100vw / 360px), calc(100vh / 640px)));
+    transform-origin: center;
+  }
 }
 
 #gameover-image {
   width: 50%;
   margin-bottom: 10px;
+  max-width: 200px;
 }
 
-#game-over-menu p {
+#gameover-menu p {
   font-size: 36px;
   color: white;
   margin-bottom: 40px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
 }
 
-#game-over-menu #restart-button {
+#gameover-menu #restart-button {
   width: 40%;
   cursor: pointer;
+  max-width: 150px;
 }
 
 #message-image {
@@ -166,4 +242,20 @@ body {
   max-width: 200px;
   pointer-events: none;
   display: none; /* Hidden by default */
+  z-index: 500;
+}
+
+/* Add touch-friendly styling for mobile */
+@media (max-width: 768px) {
+  img[style*="cursor: pointer"],
+  #start-button,
+  #restart-button {
+    transition: transform 0.1s ease;
+  }
+
+  img[style*="cursor: pointer"]:active,
+  #start-button:active,
+  #restart-button:active {
+    transform: scale(0.95);
+  }
 }
