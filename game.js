@@ -46,9 +46,6 @@ let lastPipeSpawnTime = 0;
 let webcam, faceModel;
 let isWebcamEnabled = false;
 let headTrackingEnabled = false;
-let baseHeadY = null;
-let currentHeadY = null;
-let headSensitivity = 2.0;
 let smoothingFactor = 0.3;
 let smoothedHeadY = null;
 
@@ -83,6 +80,11 @@ window.onload = function () {
   window.addEventListener("resize", handleResize);
   window.addEventListener("orientationchange", handleResize);
 
+  // Handle page visibility changes to pause/resume game
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  window.addEventListener("blur", handleWindowBlur);
+  window.addEventListener("focus", handleWindowFocus);
+
   // Start initialization sequence
   initializeGame();
 };
@@ -91,6 +93,31 @@ window.onload = function () {
 function handleResize() {
   // No longer need to update camera resolution on resize
   // Camera uses fixed dimensions for consistent performance
+}
+
+// Handle page visibility changes (tab switching, window minimizing)
+function handleVisibilityChange() {
+  if (document.hidden) {
+    endGameOnLeave();
+  }
+}
+
+// Handle window losing focus
+function handleWindowBlur() {
+  endGameOnLeave();
+}
+
+// Handle window gaining focus
+function handleWindowFocus() {
+  // No action needed when returning to the game
+}
+
+// End the game when user leaves the screen
+function endGameOnLeave() {
+  if (isGameStarted && !gameOver) {
+    console.log("Game ended - user left the screen");
+    endGame();
+  }
 }
 
 function loadGame() {
@@ -127,9 +154,6 @@ function loadGame() {
 function startGame() {
   if (!isGameStarted && headTrackingEnabled) {
     isGameStarted = true;
-
-    // Reset baseline head position when starting the game
-    baseHeadY = smoothedHeadY;
 
     // Reset speed settings
     velocityX = baseVelocityX;
@@ -294,11 +318,6 @@ function restartGame() {
   currentPipeSpawnInterval = basePipeSpawnInterval;
 
   document.getElementById("gameover-menu").style.display = "none";
-
-  // Reset head tracking baseline
-  if (headTrackingEnabled) {
-    baseHeadY = smoothedHeadY;
-  }
 
   messageImg.style.display = "block"; // Show the message when restarting the game
 
@@ -491,34 +510,13 @@ async function detectHeadPosition() {
 
       // Get nose tip (keypoint 1) for head position
       const noseTip = face.keypoints[1];
-      currentHeadY = noseTip.y;
 
       // Apply smoothing
       if (smoothedHeadY === null) {
-        smoothedHeadY = currentHeadY;
-        console.log("Initial head position set:", smoothedHeadY);
-        console.log(
-          "Video dimensions - Native:",
-          webcam.videoWidth,
-          "x",
-          webcam.videoHeight
-        );
-        console.log(
-          "Video dimensions - Display:",
-          webcam.width,
-          "x",
-          webcam.height
-        );
-        console.log(
-          "Video dimensions - Client:",
-          webcam.clientWidth,
-          "x",
-          webcam.clientHeight
-        );
+        smoothedHeadY = noseTip.y;
       } else {
         smoothedHeadY =
-          smoothedHeadY * (1 - smoothingFactor) +
-          currentHeadY * smoothingFactor;
+          smoothedHeadY * (1 - smoothingFactor) + noseTip.y * smoothingFactor;
       }
 
       // Auto-start game when head movement is detected and game is loaded but not started
