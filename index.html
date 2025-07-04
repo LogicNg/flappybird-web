@@ -1,30 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Flappy Bird</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
+    <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+    <!-- Face Landmarks Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection@1.0.5/dist/face-landmarks-detection.js"></script>
     <script src="game.js" defer></script>
-</head>
-<body>
+  </head>
+  <body>
     <canvas id="board"></canvas>
 
+    <!-- Webcam video element for head tracking -->
+    <video
+      id="webcam"
+      width="320"
+      height="240"
+      autoplay
+      muted
+      style="display: none"
+    ></video>
+
+    <!-- Head tracking control panel -->
+    <div id="head-tracking-panel">
+      <button id="toggle-webcam">Enable Head Tracking</button>
+      <div id="tracking-status">Head tracking: OFF</div>
+      <div id="head-position">Head position: Center</div>
+    </div>
+
     <div id="main-menu">
-        <img id="logo-image" src="./assets/images/logo.png" alt="Flappy Bird" />
-        <img id="start-button" src="./assets/images/start.png" alt="Start Game" style="cursor: pointer;" />
+      <img id="logo-image" src="./assets/images/logo.png" alt="Flappy Bird" />
+      <img
+        id="start-button"
+        src="./assets/images/start.png"
+        alt="Start Game"
+        style="cursor: pointer"
+      />
     </div>
 
-    <div id="gameover-menu" style="display: none;">
-        <img id="gameover-image" src="./assets/images/gameover.png" alt="Game Over" />
-        <p>Your Score: <span id="final-score">0</span></p>
-        <img id="restart-button" src="./assets/images/restart.png" alt="Restart Game" style="cursor: pointer;" />
+    <div id="gameover-menu" style="display: none">
+      <img
+        id="gameover-image"
+        src="./assets/images/gameover.png"
+        alt="Game Over"
+      />
+      <p>Your Score: <span id="final-score">0</span></p>
+      <img
+        id="restart-button"
+        src="./assets/images/restart.png"
+        alt="Restart Game"
+        style="cursor: pointer"
+      />
     </div>
 
-    <img id="message-image" src="./assets/images/message.png" alt="Message" style="display: none;" />
-
-    <footer>
-        <p>Game made by Nolan</p>
-    </footer>
-</body>
+    <img
+      id="message-image"
+      src="./assets/images/message.png"
+      alt="Message"
+      style="display: none"
+    />
+  </body>
 </html>

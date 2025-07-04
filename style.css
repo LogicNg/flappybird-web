@@ -1,104 +1,147 @@
 body {
-    background: linear-gradient(to bottom right, #f0f0f0, #cccccc);
-    color: black;
-    font-family: 'Arial', sans-serif;
-    text-align: center;
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
+  background: linear-gradient(to bottom right, #f0f0f0, #cccccc);
+  color: black;
+  font-family: "Arial", sans-serif;
+  text-align: center;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#head-tracking-panel {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 14px;
+  z-index: 1000;
+  min-width: 200px;
+}
+
+#head-tracking-panel button {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+#head-tracking-panel button:hover {
+  background: #45a049;
+}
+
+#head-tracking-panel button:disabled {
+  background: #666;
+  cursor: not-allowed;
+}
+
+#calibrate-head {
+  background: #2196f3 !important;
+}
+
+#calibrate-head:hover {
+  background: #1976d2 !important;
+}
+
+#tracking-status,
+#head-position {
+  margin: 5px 0;
+  font-size: 12px;
+}
+
+#webcam {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  border: 2px solid #333;
+  border-radius: 5px;
+  z-index: 999;
+}
 
 #board {
-    border: 5px solid #000;
-    margin: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url("./assets/images/bg.png");
-    background-size: cover;
+  border: 5px solid #000;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("./assets/images/bg.png");
+  background-size: cover;
 }
 
 #main-menu {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 360px;
-    height: 800px;
-    background: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  height: 800px;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 #main-menu #logo-image {
-    width: 80%;
-    margin-bottom: 100px;
-    cursor: pointer;
+  width: 80%;
+  margin-bottom: 100px;
+  cursor: pointer;
 }
 
 #main-menu #start-button {
-    width: 40%; 
-    cursor: pointer;
+  width: 40%;
+  cursor: pointer;
 }
 
 #gameover-menu {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 360px;
-    height: 640px;
-    background: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    display: none;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 360px;
+  height: 640px;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  display: none;
 }
 
 #gameover-image {
-    width: 50%;
-    margin-bottom: 10px;
+  width: 50%;
+  margin-bottom: 10px;
 }
 
 #game-over-menu p {
-    font-size: 36px;
-    color: white;
-    margin-bottom: 40px;
+  font-size: 36px;
+  color: white;
+  margin-bottom: 40px;
 }
 
 #game-over-menu #restart-button {
-    width: 40%; 
-    cursor: pointer;
+  width: 40%;
+  cursor: pointer;
 }
 
 #message-image {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    max-width: 200px;
-    pointer-events: none;
-    display: none;  /* Hidden by default */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  max-width: 200px;
+  pointer-events: none;
+  display: none; /* Hidden by default */
 }
-
-footer {
-    margin-top: auto;
-    padding: 10px 20px;
-    color: black; 
-    text-align: center;
-    font-size: 14px; 
-  }
-  
-  footer p::before {
-    content: "©"; 
-    margin-right: 5px; 
-  }
