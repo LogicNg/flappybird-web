@@ -48,7 +48,6 @@ let isWebcamEnabled = false;
 let headTrackingEnabled = false;
 let smoothingFactor = 0.3;
 let smoothedHeadY = null;
-let webcamReferenceHeight = null; // Store reference height for consistent mapping
 
 // Loading state variables
 let isModelLoaded = false;
@@ -178,9 +177,11 @@ function update() {
     }
 
     // Handle head tracking control - camera control is required
-    if (headTrackingEnabled && smoothedHeadY !== null && webcamReferenceHeight) {
-      // Use the stored reference height for consistent mapping across all devices
-      const headProgress = smoothedHeadY / webcamReferenceHeight;
+    if (headTrackingEnabled && smoothedHeadY !== null) {
+      // Use the display dimensions for coordinate mapping since face detection
+      // works on the video element as displayed, not the native resolution
+      const displayHeight = webcam.height || webcam.clientHeight;
+      const headProgress = smoothedHeadY / displayHeight;
 
       // Map to game board height, keeping bird within bounds
       // Direct mapping: head at top (0) -> bird at top (0), head at bottom (1) -> bird at bottom
@@ -194,7 +195,7 @@ function update() {
         console.log(
           `Head Y: ${smoothedHeadY.toFixed(
             1
-          )}, Reference Height: ${webcamReferenceHeight}, Progress: ${headProgress.toFixed(
+          )}, Display Height: ${displayHeight}, Progress: ${headProgress.toFixed(
             2
           )}, Bird Y: ${bird.y.toFixed(1)}`
         );
@@ -382,10 +383,6 @@ async function initializeCamera() {
     // Set webcam element display dimensions (this doesn't affect the actual video resolution)
     webcam.width = displayWidth;
     webcam.height = displayHeight;
-    
-    // Store reference height for consistent head tracking mapping
-    // Use the native video height as it's always available and consistent
-    webcamReferenceHeight = videoHeight;
 
     webcam.style.display = "block";
     isWebcamEnabled = true;
@@ -394,7 +391,7 @@ async function initializeCamera() {
 
     updateCameraStatus("✅ Camera ready!");
     console.log(
-      `Camera initialized: Native ${videoWidth}x${videoHeight}, Display ${displayWidth}x${displayHeight}, Reference Height: ${webcamReferenceHeight}`
+      `Camera initialized: Native ${videoWidth}x${videoHeight}, Display ${displayWidth}x${displayHeight}`
     );
 
     // Start face detection immediately
@@ -523,13 +520,15 @@ async function detectHeadPosition() {
       }
 
       // Auto-start game when head movement is detected and game is loaded but not started
-      if (!isGameStarted && !gameOver && headTrackingEnabled && webcamReferenceHeight) {
-        const headProgress = smoothedHeadY / webcamReferenceHeight;
+      if (!isGameStarted && !gameOver && headTrackingEnabled) {
+        // Use display height for consistency with game controls
+        const displayHeight = webcam.height || webcam.clientHeight;
+        const headProgress = smoothedHeadY / displayHeight;
 
         console.log(
           `Head progress: ${headProgress.toFixed(
             2
-          )}, game started: ${isGameStarted}, reference height: ${webcamReferenceHeight}`
+          )}, game started: ${isGameStarted}`
         );
 
         // Start game if head is moved from center (more sensitive threshold)
