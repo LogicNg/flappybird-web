@@ -14,6 +14,11 @@ let pipes = [],
   pipeX = boardWidth;
 let topPipeImg, bottomPipeImg;
 
+// Pipe configuration constants
+const pipeGap = boardHeight / 4; // Gap between top and bottom pipes
+const pipeSpawnInterval = 2000; // Time between pipe spawns in milliseconds
+const minGapFromEdges = 80; // Minimum distance from screen edges for gap center
+
 let gravity = 0.4,
   velocityY = 0,
   velocityX = -2,
@@ -39,6 +44,10 @@ let headSensitivity = 2.0;
 let smoothingFactor = 0.3;
 let smoothedHeadY = null;
 
+// Loading state variables
+let isModelLoaded = false;
+let isCameraReady = false;
+
 window.onload = function () {
   board = document.getElementById("board");
   board.width = boardWidth;
@@ -62,29 +71,33 @@ window.onload = function () {
     .getElementById("restart-button")
     .addEventListener("click", restartGame);
 
-  // Head tracking toggle button
-  document
-    .getElementById("toggle-webcam")
-    .addEventListener("click", toggleWebcam);
-
-  // Added a mouse click event listener to the canvas for jumping
-  board.addEventListener("click", jump);
-  // Added a keydown event listener for the spacebar
-  document.addEventListener("keydown", (e) => {
-    if (e.code === "Space") jump();
-  });
-
-  // Initialize face detection model
-  initializeFaceDetection();
+  // Start initialization sequence
+  initializeGame();
 };
 
 function loadGame() {
+  // Check if everything is properly initialized
+  if (!isModelLoaded || !isCameraReady) {
+    alert("Game is not ready yet. Please wait for initialization to complete.");
+    return;
+  }
+
   swooshSound.play();
   document.getElementById("main-menu").style.display = "none";
   isGameStarted = false;
   velocityY = 0;
   score = 0;
   bird.y = birdY;
+
+  // Ensure head tracking detection is running
+  if (isWebcamEnabled && headTrackingEnabled) {
+    detectHeadPosition();
+    console.log("Head tracking detection started for game");
+  } else {
+    console.error("Camera not properly initialized");
+    alert("Camera is not ready. Please refresh the page and try again.");
+    return;
+  }
 
   messageImg.style.display = "block"; // Show the message when the game is loaded
 
@@ -94,19 +107,15 @@ function loadGame() {
 }
 
 function startGame() {
-  if (!isGameStarted) {
+  if (!isGameStarted && headTrackingEnabled) {
     isGameStarted = true;
 
     // Reset baseline head position when starting the game
-    if (headTrackingEnabled) {
-      baseHeadY = currentHeadY;
-      smoothedHeadY = currentHeadY;
-    } else {
-      velocityY = -6;
-      flapSound.play();
-    }
+    baseHeadY = currentHeadY;
+    smoothedHeadY = currentHeadY;
 
-    pipeInterval = setInterval(addPipes, 1500);
+    // Use the pipe spawn interval constant
+    pipeInterval = setInterval(addPipes, pipeSpawnInterval);
     messageImg.style.display = "none"; // Hide the message after the game starts
   }
 }
@@ -116,7 +125,7 @@ function update() {
   ctx.clearRect(0, 0, board.width, board.height);
 
   if (isGameStarted) {
-    // Handle head tracking control
+    // Handle head tracking control - camera control is required
     if (headTrackingEnabled && currentHeadY !== null) {
       // Map head position directly to bird Y coordinate using full video height
       const videoHeight = 240; // Height of the webcam video
@@ -127,11 +136,15 @@ function update() {
       bird.y = Math.max(0, Math.min(boardHeight - birdHeight, targetY));
       velocityY = 0; // Disable gravity when using head tracking
     } else {
-      // Apply gravity only if head tracking is disabled or no head is detected
-      if (!headTrackingEnabled || currentHeadY === null) {
-        velocityY += gravity;
+      // If head tracking is not enabled or no head is detected, pause the game
+      if (!headTrackingEnabled) {
+        // Game requires head tracking - don't move the bird
+        velocityY = 0;
+      } else {
+        // Head tracking enabled but no head detected - apply minimal gravity
+        velocityY += gravity * 0.5; // Reduced gravity when head not detected
+        bird.y = Math.max(bird.y + velocityY, 0);
       }
-      bird.y = Math.max(bird.y + velocityY, 0);
     }
   }
 
@@ -152,7 +165,8 @@ function update() {
     if (isCollision(bird, pipe)) endGame();
   });
 
-  pipes = pipes.filter((pipe) => pipe.x >= -pipeWidth);
+  // Remove pipes that have moved completely off screen (with some buffer)
+  pipes = pipes.filter((pipe) => pipe.x >= -pipeWidth - 50);
 
   ctx.fillStyle = "white";
   ctx.font = "45px sans-serif";
@@ -163,21 +177,37 @@ function update() {
 
 function addPipes() {
   if (gameOver || !isGameStarted) return;
-  let gap = boardHeight / 4;
-  let randomY = -pipeHeight / 4 - Math.random() * (pipeHeight / 2);
 
+  // Use the configured gap size
+  let gap = pipeGap;
+
+  // Calculate the total available space for pipe positioning
+  // Ensure gap center is within safe bounds
+  let minGapCenter = minGapFromEdges + gap / 2;
+  let maxGapCenter = boardHeight - minGapFromEdges - gap / 2;
+
+  // Random position for the gap opening (center of the gap)
+  let gapCenter = minGapCenter + Math.random() * (maxGapCenter - minGapCenter);
+
+  // Calculate pipe positions based on gap center
+  let topPipeY = gapCenter - gap / 2 - pipeHeight; // Top pipe ends at gap start
+  let bottomPipeY = gapCenter + gap / 2; // Bottom pipe starts at gap end
+
+  // Add top pipe
   pipes.push({
     img: topPipeImg,
     x: pipeX,
-    y: randomY,
+    y: topPipeY,
     width: pipeWidth,
     height: pipeHeight,
     passed: false,
   });
+
+  // Add bottom pipe
   pipes.push({
     img: bottomPipeImg,
     x: pipeX,
-    y: randomY + pipeHeight + gap,
+    y: bottomPipeY,
     width: pipeWidth,
     height: pipeHeight,
     passed: false,
@@ -185,22 +215,10 @@ function addPipes() {
 }
 
 function jump() {
-  // Only allow manual jumping if head tracking is disabled
-  if (headTrackingEnabled) {
-    if (!isGameStarted) {
-      startGame();
-    } else if (gameOver) {
-      restartGame();
-    }
-    return;
-  }
-
-  if (!isGameStarted) {
+  // Only allow starting game or restarting when using head tracking
+  if (!isGameStarted && headTrackingEnabled) {
     startGame();
-  } else if (!gameOver) {
-    velocityY = -6;
-    flapSound.play();
-  } else {
+  } else if (gameOver && headTrackingEnabled) {
     restartGame();
   }
 }
@@ -241,9 +259,92 @@ function restartGame() {
   loadGame();
 }
 
+// Game initialization and loading functions
+async function initializeGame() {
+  updateLoadingText("Initializing game...");
+
+  // Initialize both model and camera in parallel
+  const modelPromise = initializeFaceDetection();
+  const cameraPromise = initializeCamera();
+
+  await Promise.all([modelPromise, cameraPromise]);
+
+  // Check if both are ready
+  if (isModelLoaded && isCameraReady) {
+    showStartButton();
+  } else {
+    showError();
+  }
+}
+
+async function initializeCamera() {
+  try {
+    updateCameraStatus("🔄 Requesting camera access...");
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        width: 320,
+        height: 240,
+        facingMode: "user",
+      },
+    });
+    webcam.srcObject = stream;
+    webcam.style.display = "block";
+    isWebcamEnabled = true;
+    headTrackingEnabled = true;
+    isCameraReady = true;
+
+    updateCameraStatus("✅ Camera ready!");
+    console.log("Camera initialized successfully");
+
+    // Start face detection immediately
+    detectHeadPosition();
+  } catch (error) {
+    console.error("Error accessing camera:", error);
+    updateCameraStatus("❌ Camera access denied");
+    isCameraReady = false;
+  }
+}
+
+function updateLoadingText(text) {
+  document.getElementById("loading-text").textContent = text;
+}
+
+function updateModelStatus(text, isComplete = false, isError = false) {
+  const element = document.getElementById("model-status");
+  element.textContent = text;
+  element.className = isComplete
+    ? "status-complete"
+    : isError
+    ? "status-error"
+    : "";
+}
+
+function updateCameraStatus(text, isComplete = false, isError = false) {
+  const element = document.getElementById("camera-status");
+  element.textContent = text;
+  element.className = isComplete
+    ? "status-complete"
+    : isError
+    ? "status-error"
+    : "";
+}
+
+function showStartButton() {
+  document.getElementById("loading-screen").style.display = "none";
+  document.getElementById("start-button").style.display = "block";
+  updateLoadingText("Ready to play!");
+}
+
+function showError() {
+  updateLoadingText("Setup failed - please refresh and try again");
+  document.getElementById("loading-screen").style.display = "block";
+}
+
 // Head tracking and webcam functions
 async function initializeFaceDetection() {
   try {
+    updateModelStatus("🔄 Loading TensorFlow.js...");
     console.log("Loading face detection model...");
     console.log("TensorFlow.js version:", tf.version.tfjs);
     console.log(
@@ -253,6 +354,7 @@ async function initializeFaceDetection() {
 
     await tf.ready();
     console.log("TensorFlow.js is ready");
+    updateModelStatus("🔄 Loading face detection model...");
 
     if (typeof faceLandmarksDetection === "undefined") {
       throw new Error("faceLandmarksDetection is not loaded");
@@ -272,74 +374,31 @@ async function initializeFaceDetection() {
       model,
       detectorConfig
     );
+
+    isModelLoaded = true;
+    updateModelStatus("✅ AI model ready!", true);
     console.log("Face detection model loaded successfully");
   } catch (error) {
     console.error("Error loading face detection model:", error);
-    document.getElementById("toggle-webcam").disabled = true;
-    document.getElementById("tracking-status").textContent =
-      "Head tracking: ERROR - Model failed to load";
+    updateModelStatus("❌ Model loading failed", false, true);
+    isModelLoaded = false;
   }
 }
 
-async function toggleWebcam() {
-  const button = document.getElementById("toggle-webcam");
-
-  if (!isWebcamEnabled) {
-    try {
-      button.disabled = true;
-      button.textContent = "Starting...";
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: 320,
-          height: 240,
-          facingMode: "user",
-        },
-      });
-
-      webcam.srcObject = stream;
-      webcam.style.display = "block";
-      isWebcamEnabled = true;
-      headTrackingEnabled = true;
-
-      button.textContent = "Disable Head Tracking";
-      document.getElementById("tracking-status").textContent =
-        "Head tracking: ON";
-
-      // Start head tracking
-      detectHeadPosition();
-    } catch (error) {
-      console.error("Error accessing webcam:", error);
-      button.textContent = "Webcam Access Denied";
-      document.getElementById("tracking-status").textContent =
-        "Head tracking: ERROR - Camera access denied";
-    }
-    button.disabled = false;
+async function enableWebcam() {
+  // Camera should already be enabled from initialization
+  if (isWebcamEnabled && headTrackingEnabled) {
+    // Start head tracking detection loop
+    detectHeadPosition();
+    console.log("Head tracking detection started");
   } else {
-    // Stop webcam
-    const stream = webcam.srcObject;
-    if (stream) {
-      const tracks = stream.getTracks();
-      tracks.forEach((track) => track.stop());
-    }
-
-    webcam.style.display = "none";
-    isWebcamEnabled = false;
-    headTrackingEnabled = false;
-    baseHeadY = null;
-    currentHeadY = null;
-    smoothedHeadY = null;
-
-    button.textContent = "Enable Head Tracking";
-    document.getElementById("tracking-status").textContent =
-      "Head tracking: OFF";
-    document.getElementById("head-position").textContent =
-      "Head position: Center";
+    console.error("Camera not properly initialized");
+    alert("Camera is not ready. Please refresh the page and try again.");
   }
 }
 
 async function detectHeadPosition() {
-  if (!headTrackingEnabled || !faceModel || !webcam.readyState === 4) {
+  if (!headTrackingEnabled || !faceModel || webcam.readyState !== 4) {
     if (headTrackingEnabled) {
       requestAnimationFrame(detectHeadPosition);
     }
@@ -359,13 +418,30 @@ async function detectHeadPosition() {
       // Apply smoothing
       if (smoothedHeadY === null) {
         smoothedHeadY = currentHeadY;
+        console.log("Initial head position set:", smoothedHeadY);
       } else {
         smoothedHeadY =
           smoothedHeadY * (1 - smoothingFactor) +
           currentHeadY * smoothingFactor;
       }
 
-      // Update UI based on position in video
+      // Auto-start game when head movement is detected and game is loaded but not started
+      if (!isGameStarted && !gameOver && headTrackingEnabled) {
+        const videoHeight = 240;
+        const headProgress = smoothedHeadY / videoHeight;
+
+        console.log(
+          `Head progress: ${headProgress}, game started: ${isGameStarted}`
+        );
+
+        // Start game if head is moved from center (more sensitive threshold)
+        if (headProgress < 0.45 || headProgress > 0.55) {
+          console.log("Starting game due to head movement");
+          startGame();
+        }
+      }
+
+      // Update UI based on position in video (for debugging)
       const videoHeight = 240;
       const headProgress = smoothedHeadY / videoHeight;
 
@@ -376,12 +452,11 @@ async function detectHeadPosition() {
         positionText = "Bottom";
       }
 
-      document.getElementById(
-        "head-position"
-      ).textContent = `Head position: ${positionText}`;
+      // Optional: Log head position for debugging
+      // console.log(`Head position: ${positionText}`);
     } else {
-      document.getElementById("head-position").textContent =
-        "Head position: Not detected";
+      // Optional: Log when head is not detected
+      // console.log("Head position: Not detected");
     }
   } catch (error) {
     console.error("Error in head detection:", error);

@@ -11,53 +11,6 @@ body {
   align-items: center;
 }
 
-#head-tracking-panel {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 15px;
-  border-radius: 10px;
-  font-size: 14px;
-  z-index: 1000;
-  min-width: 200px;
-}
-
-#head-tracking-panel button {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-bottom: 10px;
-  width: 100%;
-}
-
-#head-tracking-panel button:hover {
-  background: #45a049;
-}
-
-#head-tracking-panel button:disabled {
-  background: #666;
-  cursor: not-allowed;
-}
-
-#calibrate-head {
-  background: #2196f3 !important;
-}
-
-#calibrate-head:hover {
-  background: #1976d2 !important;
-}
-
-#tracking-status,
-#head-position {
-  margin: 5px 0;
-  font-size: 12px;
-}
-
 #webcam {
   position: absolute;
   top: 10px;
@@ -95,8 +48,77 @@ body {
 
 #main-menu #logo-image {
   width: 80%;
-  margin-bottom: 100px;
+  margin-bottom: 50px;
   cursor: pointer;
+}
+
+#camera-instructions {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 30px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 15px;
+  border-radius: 10px;
+  max-width: 280px;
+}
+
+#camera-instructions p {
+  margin: 5px 0;
+}
+
+#loading-screen {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  margin-bottom: 20px;
+  max-width: 300px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#loading-text {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+#loading-status {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#loading-status div {
+  margin: 8px 0;
+  padding: 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.status-complete {
+  background: rgba(76, 175, 80, 0.3) !important;
+}
+
+.status-error {
+  background: rgba(244, 67, 54, 0.3) !important;
 }
 
 #main-menu #start-button {

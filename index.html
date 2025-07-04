@@ -24,20 +24,29 @@
       style="display: none"
     ></video>
 
-    <!-- Head tracking control panel -->
-    <div id="head-tracking-panel">
-      <button id="toggle-webcam">Enable Head Tracking</button>
-      <div id="tracking-status">Head tracking: OFF</div>
-      <div id="head-position">Head position: Center</div>
-    </div>
-
     <div id="main-menu">
       <img id="logo-image" src="./assets/images/logo.png" alt="Flappy Bird" />
+      <div id="camera-instructions">
+        <p>This game requires camera access for head tracking control.</p>
+        <p>Move your head up and down to control the bird!</p>
+      </div>
+
+      <!-- Loading Screen -->
+      <div id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div id="loading-text">Initializing...</div>
+        <div id="loading-status">
+          <div id="model-status">🔄 Loading AI model...</div>
+          <div id="camera-status">⏳ Waiting for camera access...</div>
+        </div>
+      </div>
+
+      <!-- Start Button (initially hidden) -->
       <img
         id="start-button"
         src="./assets/images/start.png"
         alt="Start Game"
-        style="cursor: pointer"
+        style="cursor: pointer; display: none"
       />
     </div>
 
